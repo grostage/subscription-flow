@@ -1,8 +1,10 @@
+import { createContext, useContext, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Plan from './pages/Plan';
 import Coupon from './pages/Coupon';
 import Summary from './pages/Summary';
+import { getStoredUser, setStoredUser } from './lib/storage';
 
 const steps = [
   { path: '/profile', label: 'Profile' },
@@ -10,6 +12,37 @@ const steps = [
   { path: '/coupon', label: 'Coupon' },
   { path: '/summary', label: 'Summary' },
 ];
+
+// FlowContext holds the state that threads through the 4-step signup flow.
+// `user` is backed by localStorage (persists across refresh — the "remember
+// me" auto-login experience). `plan` and `coupon` are deliberately in-memory
+// only, so refreshing mid-flow loses them and the per-page guards send the
+// user back to /profile, per the spec's hints.
+const FlowContext = createContext(null);
+
+export function useFlow() {
+  return useContext(FlowContext);
+}
+
+function FlowProvider({ children }) {
+  const [user, setUserState] = useState(() => getStoredUser());
+  const [plan, setPlan] = useState(null);
+  const [coupon, setCoupon] = useState(null);
+
+  const setUser = (nextUser) => {
+    setUserState(nextUser);
+    setStoredUser(nextUser);
+  };
+
+  const resetFlow = () => {
+    setPlan(null);
+    setCoupon(null);
+  };
+
+  const value = { user, setUser, plan, setPlan, coupon, setCoupon, resetFlow };
+
+  return <FlowContext.Provider value={value}>{children}</FlowContext.Provider>;
+}
 
 function ProgressIndicator() {
   const location = useLocation();
@@ -46,63 +79,65 @@ function ProgressIndicator() {
 
 function App() {
   return (
-    <div className="min-h-screen bg-dark-darkest">
-      {/* Stylish Header */}
-      <header className="relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-primary rounded-full blur-3xl" />
-          <div className="absolute top-0 right-0 w-40 h-40 bg-secondary rounded-full blur-3xl" />
-        </div>
+    <FlowProvider>
+      <div className="min-h-screen bg-dark-darkest">
+        {/* Stylish Header */}
+        <header className="relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 left-0 w-32 h-32 bg-primary rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 w-40 h-40 bg-secondary rounded-full blur-3xl" />
+          </div>
 
-        {/* Main Header Content */}
-        <div className="relative border-b-4 border-brutal-black bg-dark">
-          <div className="max-w-2xl mx-auto px-4 py-6">
-            {/* Logo/Brand */}
-            <div className="flex items-center gap-3 mb-2">
-              {/* Decorative Box */}
-              <div className="w-10 h-10 bg-primary border-2 border-brutal-black shadow-brutal-sm flex items-center justify-center">
-                <span className="text-brutal-black font-bold text-lg">EG</span>
+          {/* Main Header Content */}
+          <div className="relative border-b-4 border-brutal-black bg-dark">
+            <div className="max-w-2xl mx-auto px-4 py-6">
+              {/* Logo/Brand */}
+              <div className="flex items-center gap-3 mb-2">
+                {/* Decorative Box */}
+                <div className="w-10 h-10 bg-primary border-2 border-brutal-black shadow-brutal-sm flex items-center justify-center">
+                  <span className="text-brutal-black font-bold text-lg">EG</span>
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight">
+                    <span className="text-primary">Eazy</span>
+                    <span className="text-secondary">Gym</span>
+                    <span className="text-white"> Subscribe</span>
+                  </h1>
+                </div>
               </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                  <span className="text-primary">Eazy</span>
-                  <span className="text-secondary">Gym</span>
-                  <span className="text-white"> Subscribe</span>
-                </h1>
+
+              {/* Tagline */}
+              <p className="text-gray-400 text-sm ml-13 pl-0.5">
+                Your fitness journey starts here in 4 simple steps
+              </p>
+
+              {/* Decorative Line */}
+              <div className="flex gap-1 mt-4">
+                <div className="h-1 w-12 bg-primary" />
+                <div className="h-1 w-8 bg-secondary" />
+                <div className="h-1 w-4 bg-accent" />
               </div>
-            </div>
-
-            {/* Tagline */}
-            <p className="text-gray-400 text-sm ml-13 pl-0.5">
-              Your fitness journey starts here in 4 simple steps
-            </p>
-
-            {/* Decorative Line */}
-            <div className="flex gap-1 mt-4">
-              <div className="h-1 w-12 bg-primary" />
-              <div className="h-1 w-8 bg-secondary" />
-              <div className="h-1 w-4 bg-accent" />
             </div>
           </div>
 
           {/* Bottom Accent */}
           <div className="h-2 bg-gradient-to-r from-primary via-secondary to-accent" />
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <ProgressIndicator />
-        <Routes>
-          <Route path="/" element={<Navigate to="/profile" replace />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/plan" element={<Plan />} />
-          <Route path="/coupon" element={<Coupon />} />
-          <Route path="/summary" element={<Summary />} />
-        </Routes>
-      </main>
-    </div>
+        {/* Main Content */}
+        <main className="max-w-2xl mx-auto px-4 py-8">
+          <ProgressIndicator />
+          <Routes>
+            <Route path="/" element={<Navigate to="/profile" replace />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/plan" element={<Plan />} />
+            <Route path="/coupon" element={<Coupon />} />
+            <Route path="/summary" element={<Summary />} />
+          </Routes>
+        </main>
+      </div>
+    </FlowProvider>
   );
 }
 
