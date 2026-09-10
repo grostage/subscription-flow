@@ -25,22 +25,90 @@ You may use **AI tools** (ChatGPT, Copilot, Cursor, etc.) — we care about the 
 
 ## 🚀 Getting Started
 
+### 0. Install Bun (if you don't have it)
+
+Bun is the runtime used for both the backend and package management.
+
+**macOS / Linux:**
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+After installing, restart your terminal and verify:
+```bash
+bun --version
+```
+
+---
+
 ### 1. Fork the repo
 Fork this repository to your own GitHub account.
 
-### 2. Create a new branch
+### 2. Clone your fork & create a branch
 ```bash
+git clone https://github.com/<your-username>/<repo-name>.git
+cd <repo-name>
 git checkout -b solution/<your-name>
 # example: git checkout -b solution/john-doe
 ```
 
-### 3. Install & run
+### 3. Setup (run this once)
 ```bash
-bun run setup   # sets up env files + installs deps + seeds the DB
-bun run dev     # starts frontend (port 3000) + backend (port 3001)
+bun run setup
 ```
 
-### 4. Push your branch when done
+This does **three things automatically**:
+1. Creates `.env` files from the templates
+2. Installs all dependencies (`bun install`)
+3. Creates the SQLite database and seeds it with Plans & Coupons
+
+> ⚠️ You must run `bun run setup` before anything else. Without it there is no database and the server won't start.
+
+If you need to re-seed or reset the DB manually:
+```bash
+bun run db:seed    # seed the database (creates tables + inserts plans & coupons)
+bun run db:reset   # drop everything and re-seed from scratch
+```
+
+You'll see this output on successful seed:
+```
+✅ Database seeded successfully!
+
+📋 Plans:
+   - Basic: ₹1499.00
+   - Pro: ₹2999.00
+
+🎟️  Coupons:
+   - WELCOME10: 10% off (max 100 uses)
+   - SUPER50: 50% off (max 5 uses)
+
+📝 Subscriptions table is empty and ready for data.
+```
+
+
+### 4. Start the dev servers
+```bash
+bun run dev
+```
+
+| Server | URL | Status after setup |
+|--------|-----|--------------------|
+| Frontend | http://localhost:3000 | ✅ UI loads |
+| Backend | http://localhost:3001 | ✅ Starts, plans & coupons queryable |
+
+**What works out of the box:**
+- `GET /api/plans` → returns Basic & Pro plans from the DB ✅
+- `GET /api/coupons` → returns WELCOME10 & SUPER50 from the DB ✅
+- `POST /api/users` → returns `501 Not Implemented` ❌ (your job)
+- `POST /api/coupons/validate` → returns `501 Not Implemented` ❌ (your job)
+- `POST /api/subscriptions/subscribe` → returns `501 Not Implemented` ❌ (your job)
+
+### 5. Build, then push
 ```bash
 git add .
 git commit -m "solution: your name"
