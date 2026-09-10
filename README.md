@@ -1,43 +1,141 @@
-# Payment Flow - Developer Evaluation
+# 🏋️ Eazy Gym — Intern Coding Challenge
 
-A subscription payment flow boilerplate for evaluating developers. This is a **mock project** simulating a gym membership signup system.
+> ⏰ **You have exactly 2 hours. Late submissions will not be accepted.**
 
-## Quick Start
+---
 
+## Your Mission
+
+The frontend UI is already built. Your job is to **build the backend, connect the database, and wire it all up** so the app works end-to-end.
+
+You may use **AI tools** (ChatGPT, Copilot, Cursor, etc.) — we care about the result, not the method. Ship fast, ship clean.
+
+---
+
+## ⚙️ Tech Stack
+
+| Layer | Tech |
+|-------|------|
+| Frontend | React + Vite + Tailwind CSS |
+| Backend | Express + Bun |
+| Database | SQLite (via `bun:sqlite`) |
+| Runtime | [Bun](https://bun.sh/) |
+
+---
+
+## 🚀 Getting Started
+
+### 1. Fork the repo
+Fork this repository to your own GitHub account.
+
+### 2. Create a new branch
 ```bash
-# Full setup (recommended for first time)
-bun run setup
-
-# Start development server
-bun run dev
+git checkout -b solution/<your-name>
+# example: git checkout -b solution/john-doe
 ```
 
-This will start:
-- **Frontend**: http://localhost:3000
-- **Backend**: http://localhost:3001
+### 3. Install & run
+```bash
+bun run setup   # sets up env files + installs deps + seeds the DB
+bun run dev     # starts frontend (port 3000) + backend (port 3001)
+```
 
-## Documentation
+### 4. Push your branch when done
+```bash
+git add .
+git commit -m "solution: your name"
+git push origin solution/<your-name>
+```
 
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Project setup, database schema, API reference
-- **[TASKS.md](./TASKS.md)** - What you need to implement (start here)
+> Submit the **branch link** before the 2-hour deadline. No extensions.
 
-## Screenshots
+---
 
-### Profile Page
-<img src="./screenshots/profile-1.png" width="400" alt="Profile - New User">
-<img src="./screenshots/profile-2.png" width="400" alt="Profile - Returning User">
-<img src="./screenshots/profile-3.png" width="400" alt="Profile - Existing User">
+## 📋 What You Need to Build
 
-### Plan Selection
-<img src="./screenshots/plans.png" width="400" alt="Plan Selection">
+The frontend pages are complete with dummy/placeholder data. Your task is to replace the placeholders with **real functionality**.
 
-### Coupon Page
-<img src="./screenshots/coupons.png" width="400" alt="Coupon Page">
+### Page 1 — Profile (`/profile`)
+- On submit, call `POST /api/users` to create the user in the database
+- Save: `username`, `name`, `age`, `weight`, `height`
+- If the **username already exists**, treat it as a returning user:
+  - Show a **"Welcome back, [Name]!"** message
+  - Display their saved profile details (name, age, weight, height)
+  - Display their **active subscription plan** and price
+- Navigate to `/plan` for new users
 
-### Summary Page
-<img src="./screenshots/summary.png" width="400" alt="Summary Page">
+### Page 2 — Plan Selection (`/plan`)
+- Fetch plans from `GET /api/plans` (pre-seeded in DB)
+- Let the user select one plan
+- Store the selected plan to pass to the Summary page
+- A plan **must** be selected to proceed
 
-## Tech Stack
+### Page 3 — Coupon (`/coupon`)
+- Call `POST /api/coupons/validate` with the entered code
+- If valid: show the discount percentage and remaining uses **after** applying
+- If invalid or exhausted: show an error
+- When a coupon is applied:
+  - Decrement `current_uses` in the database
+  - When `current_uses >= max_uses`, the coupon must be **rejected** for the next user — handle race conditions
 
-- **Frontend**: React + Vite + Tailwind CSS
-- **Backend**: Express + Bun + SQLite
+### Page 4 — Summary (`/summary`)
+- Show real data: user info, selected plan, applied coupon (if any)
+- Calculate and display the **final price after discount**
+- On "Complete Purchase", call `POST /api/subscriptions/subscribe`
+- On success, redirect to `/profile` — the user should now see the **Welcome Back** view with their plan
+
+---
+
+## 🗄️ Database (already seeded)
+
+### Pre-seeded Plans
+| Name | Price |
+|------|-------|
+| Basic | ₹1,499 / month |
+| Pro | ₹2,999 / month |
+
+### Pre-seeded Coupons
+| Code | Discount | Max Uses |
+|------|----------|----------|
+| WELCOME10 | 10% off | 100 |
+| SUPER50 | 50% off | 5 |
+
+### Tables to implement
+- `users` — created by you
+- `subscriptions` — created by you (schema is your design)
+
+See `GETTING_STARTED.md` for the full schema reference.
+
+---
+
+## ✅ Evaluation Criteria
+
+| Criteria | Weight |
+|----------|--------|
+| All features working end-to-end | High |
+| Coupon validation + race condition handling | High |
+| Returning user flow (welcome back + plan shown) | High |
+| Code clarity and structure | Medium |
+| Delivered within 2 hours | Required |
+
+---
+
+## 📁 Project Structure
+
+```
+├── client/          ← Frontend (React + Vite) — already built
+│   └── src/
+│       ├── pages/   ← Profile, Plan, Coupon, Summary
+│       └── api/     ← Wire these up to your backend
+│
+└── server/          ← Backend (Express + Bun) — you build this
+    ├── index.js
+    ├── db.js
+    └── routes/
+```
+
+> **Tip:** Read `GETTING_STARTED.md` for API endpoint specs and DB schema details before you start.
+
+---
+
+Good luck. 🚀
