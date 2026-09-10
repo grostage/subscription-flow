@@ -34,8 +34,16 @@ CREATE TABLE IF NOT EXISTS coupons (
 
 -- Subscriptions (intern must design and create this table)
 CREATE TABLE IF NOT EXISTS subscriptions (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT
-  -- TODO: Add columns for user_id, plan_id, coupon_id, final_price, created_at, etc.
+  id                INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id           INTEGER NOT NULL REFERENCES users(id),
+  plan_id           INTEGER NOT NULL REFERENCES plans(id),
+  coupon_id         INTEGER REFERENCES coupons(id),
+  coupon_code       TEXT,
+  original_price    INTEGER NOT NULL, -- paise, snapshot of plan price at purchase time
+  discount_percent  INTEGER NOT NULL DEFAULT 0,
+  final_price       INTEGER NOT NULL, -- paise, price actually charged
+  status            TEXT NOT NULL DEFAULT 'active',
+  created_at        DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ============================================================
